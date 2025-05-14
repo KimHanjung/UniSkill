@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Imitation Learning">
+  <meta name="keywords" content="robot learning">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations</title>
+
+  <style>
+    .tldr-container {
+      background-color: #f5f5f5;
+      border-radius: 8px;
+      padding: 30px;
+      margin: 40px 0;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+    
+    .tldr-title {
+      color: #333 !important;
+      font-size: 2rem !important;
+      font-weight: 700 !important;
+      margin-bottom: 25px !important;
+      display: flex;
+      align-items: center;
+    }
+    
+    .tldr-title::before {
+      content: "📌";
+      margin-right: 12px;
+      font-size: 1.8rem;
+    }
+    
+    .tldr-video-container {
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 20px 0;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .tldr-video {
+      width: 100%;
+      display: block;
+    }
+    
+    .tldr-highlight {
+      background-color: #e8e8e8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      .tldr-title {
+        font-size: 1.8rem !important;
+      }
+    }
+
+    p {
+      line-height: 1.65;
+    }
+  </style>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-M3DQFXZBJH"></script>
+ <script>
+   window.dataLayer = window.dataLayer || [];
+   function gtag(){dataLayer.push(arguments);}
+   gtag('js', new Date());
+
+   gtag('config', 'G-M3DQFXZBJH');
+ </script>
+
+<script>
+  function init() {
+      const video = document.getElementById("perturbation-task-video");
+      video.addEventListener("error", () => {
+          console.log("Error loading video: ", video.src), ". Setting default to none";
+          if(video.src.includes("undefined")) {
+              console.log("Don't have an undefined version of the clip, just crash");
+              return;
+          }
+          const task = document.getElementById("single-menu-tasks").value;
+          const uri = "static/videos/perturbations/" + task + "-undefined.mp4";
+          video.src = uri;
+          video.playbackRate = 1.75;
+          video.play();
+      }, true);
+  }
+  function updateSingleVideo() {
+      const task = document.getElementById("single-menu-tasks").value;
+      const perturbation = document.getElementById("single-menu-perturbations").value;
+      const video = document.getElementById("perturbation-task-video");
+      const uri = "static/videos/perturbations/" + task + "-" + perturbation + ".mp4"
+      video.src = uri;
+      video.playbackRate = 1.75;
+      video.play();
+  }
+</script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/android.png">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+<section class="hero" style="padding-bottom: 0;">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">UniSkill: Imitating Human Videos via<br>Cross-Embodiment Skill Representations</h1>
+          <h3 class="subtitle is-3 publication-conference">preprint</h3>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="http://kimhanjung.github.io/">Hanjung Kim</a><sup>*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.linkedin.com/in/jaehyun-kang-904aaa1ba/">Jaehyun Kang</a><sup>*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://sites.google.com/yonsei.ac.kr/hyolims/">Hyolim Kang</a>,
+            </span>
+            <span class="author-block">
+              <a href="https://chomeed.github.io/">Meedeum Cho</a>,
+            </span>
+            <span class="author-block">
+              <a href="https://sites.google.com/site/seonjookim/">Seon Joo Kim</a>,
+            </span>
+            <span class="author-block">
+              <a href="https://youngwoon.github.io">Youngwoon Lee</a>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">Yonsei University</span>
+          </div>
+          
+          <div class="is-size-6 has-text-centered" style="margin-top: 0.5em;">
+            <span><sup>*</sup>Equal contribution</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/pdf/2505.08787"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2505.08787"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/KimHanjung/UniSkill"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0;">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <div class="tldr-container">
+          <h2 class="tldr-title">TL;DR: Learning from Large-Scale Video Datasets for Cross-Embodiment Skill Representations.</h2>
+          <div class="tldr-video-container">
+            <video class="tldr-video" id="teaser" autoplay muted loop>
+              <source src="static/videos/uniskill.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <!-- <p style="color: white; font-size: 1.1rem; line-height: 1.6; margin-top: 15px; text-align: left;">
+          UniSkill enables robots to <span class="tldr-highlight">learn from human videos</span> by extracting <span class="tldr-highlight">embodiment-agnostic skill representations</span> that transfer effectively between different body types, all without paired human-robot data.
+        </p> -->
+        <h2 class="title is-3" style="margin-top: 5%;">Abstract</h2>
+        <img src="./static/images/UniSkill_teaser.jpg" alt="Teaser" />
+        <div class="content has-text-justified" style="margin-top: 2%;">
+          <!-- <p>
+            Mimicry is a fundamental learning mechanism in humans, enabling individuals to learn new tasks by observing and imitating experts. 
+            However, applying this ability to robots presents significant challenges due to the inherent differences between human and robot embodiments in both their visual appearance and physical capabilities.
+            While previous methods bridge this gap using cross-embodiment datasets with shared scenes and tasks, collecting such aligned data between humans and robots at scale is not trivial. 
+            In this paper, we propose <b>UniSkill</b>, a novel framework that learns embodiment-agnostic skill representations from large-scale cross-embodiment video data without any labels, 
+            enabling skills extracted from human video prompts to effectively transfer to robot policies trained only on robot data. 
+            Our experiments in both simulation and real-world environments show that our cross-embodiment skills successfully guide robots in selecting appropriate actions, even with unseen video prompts.
+          </p> -->
+          <p>
+            Learning from human videos is a promising direction for addressing data scarcity in robot learning, 
+            but existing methods rely on human-robot alignment or intermediate representations (e.g., trajectories), limiting scalability. 
+            <i>How can we leverage large-scale video datasets—whether from robots or humans—without relying on any labels or data collection constraints?</i> 
+            We propose <b>UniSkill</b>, a framework that learns embodiment-agnostic skill representations from large-scale, unlabeled, cross-embodiment video data. 
+            These representations enable robot policies trained only on robot data to imitate skills from human video prompts and support flexible sub-goal generation, regardless of the demonstration's embodiment.
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Overall Framework of UniSkill</h2>
+          <img src="./static/images/UniSkill_main.jpg" alt="Main figure" />
+          <div class="content has-text-justified" style="margin-top: 2%;">
+          <p>
+            UniSkill is a scalable framework designed for learning cross-embodiment skill representations from large-scale video datasets. 
+            It leverages an intuitive image-editing pipeline built upon two core components:
+            <ul>
+              <li>Inverse Skill Dynamics (ISD): Captures and extracts meaningful motion patterns between frames, representing the core skills demonstrated within video sequences.</li>
+              <li>Forward Skill Dynamics (FSD): Utilizes the skill representation provided by ISD to predict future frames, effectively forecasting how skills unfold over time.</li>
+            </ul>
+            By training a skill-conditioned policy on robotic data using these learned skill representations, UniSkill achieves embodiment-agnostic skill learning, thus facilitating policy transfer across different robotic and human embodiments.
+
+            During inference, UniSkill supports robust imitation learning from human demonstration videos. 
+            It automatically extracts generalized skills, enabling robots to imitate complex tasks demonstrated by humans without embodiment-specific retraining.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Experiments</h2>
+        <h3 class="title is-4" style="text-align: left;">Imitating Videos via Cross-Embodiment Skill Representation</h3>
+          <!-- <img src="./static/images/project_setup.png" alt="Robot Tasks" /> -->
+          <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+            <!-- <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px; font-weight: bold; font-size: 1.3em;">UniSkill enables imitation of demonstration videos across diverse embodiments.</h2> -->
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="./static/images/project_imitation.png" alt="Imitation Image" style="max-width: 80%; height: auto;" />
+            </div>
+            <p style="text-align: justify; margin: 0;">
+              <b>UniSkill enables imitation of demonstration videos across diverse embodiments.</b>
+              We evaluate UniSkill's embodiment-agnostic property on both the tabletop and kitchen benchmarks.
+              In the tabletop benchmark, UniSkill successfully imitates tasks even when prompted by human demonstration videos.
+              In the kitchen benchmark, it goes further by successfully imitating prompts from Anubis&mdash;a robot with a different embodiment that was entirely unseen during training.
+              These results demonstrate that UniSkill's cross-embodiment skill representation effectively captures transferable skills across diverse embodiments.
+            </p>
+          </div>
+          
+          
+          <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="./static/images/project_composition.png" alt="Composition Image" style="max-width: 80%; height: auto;" />
+            </div>
+            <p style="text-align: justify; margin: 0;">
+              <b>UniSkill's skill representations generalize to unseen tasks.</b>
+              We evaluate UniSkill's skill representation through compositional tasks.
+              Despite being trained only on individual tasks, UniSkill successfully performs task combinations (i.e., unseen tasks) using both robot and human prompts.
+              This highlights the compositionality of its skill representation.
+            </p>
+          </div>
+
+          
+          <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+            <!-- <h2 style="text-align: center; margin-top: 0; font-weight: bold; font-size: 1.5em;">Robustness to Scene Variation</h2> -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td width="55%" valign="top" align="justify" style="padding-right: 4%;">
+                  <p>
+                    <b>UniSkill demonstrates scene generalization in unseen environments.</b>
+                    To validate robustness to unseen environments, we modify the background and objects in the prompt videos.
+                    UniSkill continues to succeed under these changes, demonstrating scene generalization.
+                    This generalization also holds in simulation experiments, where human prompts are naturally collected in scenes differ from the simulation environment.
+                  </p>
+                </td>
+                <td width="35%" valign="middle">
+                  <img src="static/images/project_unseen.png" style="width: 100%; display: block; padding-right: 6%;">
+                </td>
+              </tr>
+            </table>
+          </div>
+
+        <!-- add margin here -->
+        <div style="margin-bottom: 60px;"></div>
+
+        <h3 class="title is-4" style="text-align: left;">Skill-Based Future Frame Prediction</h3>
+        <!-- 1. Skill-Based Future Frame Prediction -->
+        <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+          <img src="static/images/UniSKill_fsd.jpg" style="width: 100%; display: block;">
+          <div class="content has-text-justified" style="margin-top: 20px;">
+            <p>
+              <b>UniSkill can generate future frames using embodiment-agnostic skill representations.</b>
+              UniSkill's ISD and FSD can be used independently.
+              ISD extracts a skill representation from any prompt, and this representation can then be used to condition FSD, regardless of the source. 
+              As a result, sub-goal images can be generated from skill representations derived from different prompts&mdash;even those with different embodiments or from different scenes.
+              Given the same current observation, FSD can produce distinct sub-goal images depending on the skills, enabling flexible and generalizable sub-goal generation.
+            </p>
+          </div>
+        </div>
+
+        <!-- 2. Improving GCBC with UniSkill -->
+        <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+          <table width="100%" align="left" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 20px; margin-top: 10px;">
+            <tr>
+              <td width="35%" valign="top" align="justify" style="padding-right: 10px;">
+                <img src="static/images/UniSkill_exp3.jpg" style="width: 100%; display: block;">
+              </td>
+              <td width="65%" valign="middle">
+                <img src="static/images/UniSKill_baseline2.jpg" style="width: 100%; display: block;">
+              </td>
+            </tr>
+          </table>
+          <div class="content has-text-justified">
+            <p>
+              <b>Improving GCBC with UniSkill.</b>
+              In simulation environments with human prompts, GCBC performs poorly due to large visual discrepancies between the prompt and current observation.
+              To address this, we introduce <b>GCBC-U</b>, which conditions the policy on sub-goal images generated by FSD.
+              These generated sub-goals help bridge the visual gap and improve performance.
+            </p>
+          </div>
+        </div>
+
+        <!-- 3. Comparison with LAPA -->
+        <div style="border: 1px solid #ddd; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+          <img src="static/images/UniSKill_comparison.jpg" style="width: 100%; display: block;">
+          <div class="content has-text-justified" style="margin-top: 20px;">
+            <p>
+              <b>UniSkill's well-structured skill representations enable precise future frame predictions.</b>
+              Similar to UniSkill, LAPA also leverages large-scale video datasets to extract cross-embodiment latent actions.
+              To compare with their cross-embodiment skill (or action) representations, we evaluate the quality of predicted future frames from each method.
+              On both seen and unseen demonstrations, UniSkill produces sharp and accurate predictions, while LAPA generates noticeably blurrier images.
+            </p>
+          </div>
+        </div>
+      </section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- 제목 부분 -->
+    <div class="columns is-centered has-text-centered" style="margin-bottom: 20px;">
+      <div class="column">
+        <h2 class="title is-3">Rollout Videos</h2>
+        <h3 class="title is-4" style="text-align: left;">Cross-Embodiment Imitation</h3>
+      </div>
+    </div>
+    
+    <!-- 두 개의 박스를 포함하는 메인 columns -->
+    <div class="columns">
+      <!-- 첫 번째 박스 (비디오 1개) -->
+      <div class="column is-one-quarter" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin-right: 15px;">
+        <div class="has-text-centered">
+          <h5><b>Robot Prompt</b><br>Pull out the tissue</h5>
+          <!-- 비디오 컨테이너에 고정 크기 적용 -->
+          <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+            <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+              <source src="static/videos/prompt_robot_pull_out_the_tissue.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 두 번째 박스 (비디오 3개) -->
+      <div class="column" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+        <div class="columns">
+          <!-- 첫 번째 비디오 -->
+          <div class="column has-text-centered">
+            <h5><b>GCBC</b><br><span style="color: #28a745; font-weight: bold;">Success</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_gcbc.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          
+          <!-- 두 번째 비디오 -->
+          <div class="column has-text-centered">
+            <!-- <h5><b>XSkill</b><br><span style="color: red; font-weight: bold;">Fail</span><br><span style="color: red; font-weight: bold;">(Stuck)</span></h5> -->
+            <h5><b>XSkill</b><br><span style="color: red; font-weight: bold;">Fail (Stuck)</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_xskill.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          
+          <!-- 세 번째 비디오 -->
+          <div class="column has-text-centered">
+            <h5><b>UniSkill</b><br><span style="color: #28a745; font-weight: bold;">Success</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_uniskill.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns" style="padding-top: 20px;">
+      <!-- 첫 번째 박스 (비디오 1개) -->
+      <div class="column is-one-quarter" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin-right: 15px;">
+        <div class="has-text-centered">
+          <h5><b>Human Prompt</b><br>Pull out the tissue</h5>
+          <!-- 비디오 컨테이너에 고정 크기 적용 -->
+          <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+            <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+              <source src="static/videos/prompt_human_pull_out_the_tissue.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 두 번째 박스 (비디오 3개) -->
+      <div class="column" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+        <div class="columns">
+          <!-- 첫 번째 비디오 -->
+          <div class="column has-text-centered">
+            <h5><b>GCBC</b><br><span style="color: red; font-weight: bold;">Fail (Different Task)</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_human_gcbc.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          
+          <!-- 두 번째 비디오 -->
+          <div class="column has-text-centered">
+            <!-- <h5><b>XSkill</b><br><span style="color: red; font-weight: bold;">Fail</span><br><span style="color: red; font-weight: bold;">(Stuck)</span></h5> -->
+            <h5><b>XSkill</b><br><span style="color: red; font-weight: bold;">Fail (Stuck)</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_human_xskill.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+          
+          <!-- 세 번째 비디오 -->
+          <div class="column has-text-centered">
+            <h5><b>UniSkill</b><br><span style="color: #28a745; font-weight: bold;">Success</span></h5>
+            <!-- 비디오 컨테이너에 고정 크기 적용 -->
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_human_uniskill.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns is-centered has-text-centered" style="margin-bottom: 20px;">
+      <div class="column">
+        <h3 class="title is-4" style="text-align: left;">Skill Composition</h3>
+      </div>
+    </div>
+
+    <div class="columns">
+
+      <!-- Robot-to-Robot -->
+      <div class="column" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
+        <h4 style="text-align: center; font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">Robot-to-Robot</h4>
+        <div class="columns">
+    
+          <!-- 첫 번째 비디오 -->
+          <div class="column has-text-centered">
+            <p style="font-weight: bold; margin-bottom: 4px;">Task A-B</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/prompt_robot_AB.mp4" type="video/mp4">
+              </video>
+            </div>
+            <p style="font-size: 24px;">&#x2B07;</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_AB.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+    
+          <!-- 두 번째 비디오 -->
+          <div class="column has-text-centered">
+            <p style="font-weight: bold; margin-bottom: 4px;">Task A-B-C</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/prompt_robot_ABC.mp4" type="video/mp4">
+              </video>
+            </div>
+            <p style="font-size: 24px;">&#x2B07;</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_ABC.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+    
+          <!-- 세 번째 비디오 -->
+          <div class="column has-text-centered">
+            <p style="font-weight: bold; margin-bottom: 4px;">Task A-B-C-D</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/prompt_robot_ABCD.mp4" type="video/mp4">
+              </video>
+            </div>
+            <p style="font-size: 24px;">&#x2B07;</p>
+            <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+              <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                <source src="static/videos/eval_robot_ABCD.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+    
+        </div>
+      </div>
+    
+      <!-- Human-to-Robot -->
+      <div class="column is-one-quarter" style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin-left: 15px;">
+        <div class="has-text-centered">
+          <h4 style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">Human-to-Robot</h4>
+          <p style="font-weight: bold; margin-bottom: 4px;">Task A-B</p>
+          <div style="width: 100%; height: 0; padding-bottom: 56.25%; padding-top: 10%; position: relative;">
+            <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+              <source src="static/videos/prompt_human_AB.mp4" type="video/mp4">
+            </video>
+          </div>
+          <p style="font-size: 24px;">&#x2B07;</p>
+          <div style="width: 100%; height: 0; padding-bottom: 58.25%; padding-top: 10%; position: relative;">
+            <video autoplay controls muted loop playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+              <source src="static/videos/eval_human_AB.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@article{kim2025uniskillimitatinghumanvideos,
+    title={UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations},
+    author={Hanjung Kim and Jaehyun Kang and Hyolim Kang and Meedeum Cho and Seon Joo Kim and Youngwoon Lee},
+    journal = {arXiv preprint arXiv:2505.08787},
+    year={2025},
+} 
+    </code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website template was borrowed from the <a href="https://nerfies.github.io/">Nerfies</a> project.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
