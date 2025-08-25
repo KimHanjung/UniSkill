@@ -1,9 +1,9 @@
 # UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations
 
 <!-- ### [Imitating Human Videos via Cross-Embodiment Skill Representations](https://uniskill.github.io)    -->
-[Hanjung Kim*](https://kimhanjung.github.io/), [Jaehyun Kang*](https://kang-jaehyun.github.io/), [Hyolim Kang](https://sites.google.com/yonsei.ac.kr/hyolims), [Meedeum Cho](https://chomeed.github.io), [Seon Joo Kim](https://www.ciplab.kr), [Youngwoon Lee](https://youngwoon.github.io/)
+[Hanjung Kim*](https://kimhanjung.github.io/), [Jaehyun Kang*](https://kang-jaehyun.github.io/), [Hyolim Kang](https://sites.google.com/view/hyolim), [Meedeum Cho](https://chomeed.github.io), [Seon Joo Kim](https://www.ciplab.kr), [Youngwoon Lee](https://youngwoon.github.io/)
 
-[[`arXiv`](https://arxiv.org/abs/2505.08787)][[`Project`](https://kimhanjung.github.io/UniSkill/)][[`BibTeX`](#citing-uniskill)]
+[[`arXiv`](https://arxiv.org/abs/2505.08787)][[`Project`](https://kimhanjung.github.io/UniSkill/)][[`Dataset`](https://huggingface.co/datasets/HanjungKim/UniSkill)][[`BibTeX`](#citing-uniskill)]
 
 ![](https://kimhanjung.github.io/images/uniskill.png)
 
@@ -16,6 +16,7 @@
 We will be releasing all the following contents:
 - [x] FSD & ISD training code
 - [x] FSD & ISD checkpoint
+- [x] Real-world Dataset
 - [ ] Skill-Conditioned Policy training & inference code
 - [ ] Skill-Conditioned Policy checkpoint
 - [ ] Skill-extraction code
@@ -82,10 +83,11 @@ Make sure to replace `{Your Dataset}`, `{output_dir}`, and `{report_name}` with 
 ## <a name="CitingUniSkill"></a>Citing UniSkill
 
 ```BibTeX
-@article{kim2025uniskillimitatinghumanvideos,
-    title={UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations},
-    author={Hanjung Kim and Jaehyun Kang and Hyolim Kang and Meedeum Cho and Seon Joo Kim and Youngwoon Lee},
-    journal = {arXiv preprint arXiv:2505.08787},
-    year={2025},
-} 
+@inproceedings{
+kim2025uniskill,
+title={UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations},
+author={Hanjung Kim and Jaehyun Kang and Hyolim Kang and Meedeum Cho and Seon Joo Kim and Youngwoon Lee},
+booktitle={9th Annual Conference on Robot Learning},
+year={2025}
+}
 ```
