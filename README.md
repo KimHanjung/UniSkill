@@ -84,10 +84,10 @@ Make sure to replace `{Your Dataset}`, `{output_dir}`, and `{report_name}` with 
 
 ```BibTeX
 @inproceedings{
-kim2025uniskill,
-title={UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations},
-author={Hanjung Kim and Jaehyun Kang and Hyolim Kang and Meedeum Cho and Seon Joo Kim and Youngwoon Lee},
-booktitle={9th Annual Conference on Robot Learning},
-year={2025}
+    kim2025uniskill,
+    title={UniSkill: Imitating Human Videos via Cross-Embodiment Skill Representations},
+    author={Hanjung Kim and Jaehyun Kang and Hyolim Kang and Meedeum Cho and Seon Joo Kim and Youngwoon Lee},
+    booktitle={9th Annual Conference on Robot Learning},
+    year={2025}
 }
 ```
