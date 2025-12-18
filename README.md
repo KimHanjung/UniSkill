@@ -17,9 +17,9 @@ We will be releasing all the following contents:
 - [x] FSD & ISD training code
 - [x] FSD & ISD checkpoint
 - [x] Real-world Dataset
-- [ ] Skill-Conditioned Policy training & inference code
-- [ ] Skill-Conditioned Policy checkpoint
-- [ ] Skill-extraction code
+- [x] Skill-Conditioned Policy training & inference code
+- [x] Skill-Conditioned Policy checkpoint
+- [x] Skill-extraction code
 
 ## Installation
 
@@ -73,6 +73,14 @@ accelerate launch --config_file hf.yaml diffusion/train_uniskill.py \
 ```
 
 Make sure to replace `{Your Dataset}`, `{output_dir}`, and `{report_name}` with the appropriate values.
+
+### Training UniSkill (Universal Skill-Conditioned Policy)
+
+For policy training, please refer to the [Uniskill-policy](https://github.com/kang-jaehyun/UniSkill-Policy/) repository.
+
+To train the policy effectively, we pre-extract skills from the data. We provide a skill extraction script, [extract_skill.py](./extract_skill.py), which you can use as a reference.
+
+Alternatively, you can use a pre-trained IDM directly within your policy to extract skills on the fly.
 
 ## Download
 
